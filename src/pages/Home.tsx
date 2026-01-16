@@ -26,7 +26,7 @@ const Home: React.FC = () => {
         {/* Header */}
         <header className="flex justify-between items-start p-4 pt-6">
           <div className="text-white/80 text-sm font-medium">
-            599 99 87 35
+            574-747-581
           </div>
           <LanguageSelector />
         </header>
