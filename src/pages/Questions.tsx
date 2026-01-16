@@ -1,14 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
 import StartLogo from '@/components/StartLogo';
 import { generateQuestionsForSubject, getAllQuestions, subjects } from '@/data/questions';
 
 const Questions: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId, subjectId } = useParams();
-  const { language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -90,18 +88,13 @@ const Questions: React.FC = () => {
         {/* Question */}
         <div className="question-box mb-6 animate-fade-in">
           <p className="text-foreground text-base md:text-lg leading-relaxed">
-            {language === 'en' && currentQuestion.questionEn 
-              ? currentQuestion.questionEn 
-              : currentQuestion.question}
+            {currentQuestion.question}
           </p>
         </div>
 
         {/* Answers */}
         <div className="space-y-3 flex-1 animate-slide-in">
           {currentQuestion.answers.map((answer, index) => {
-            const answerText = language === 'en' && currentQuestion.answersEn 
-              ? currentQuestion.answersEn[index] 
-              : answer;
             
             return (
               <button
@@ -110,7 +103,7 @@ const Questions: React.FC = () => {
                 className={getAnswerClass(index)}
                 disabled={selectedAnswer !== null}
               >
-                {answerText}
+                {answer}
               </button>
             );
           })}

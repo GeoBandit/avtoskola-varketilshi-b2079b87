@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
 import StartLogo from '@/components/StartLogo';
 import { getAllQuestions } from '@/data/questions';
 
@@ -11,7 +10,6 @@ const EXAM_QUESTION_COUNT = 30;
 const Exam: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams();
-  const { language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -119,18 +117,13 @@ const Exam: React.FC = () => {
         {/* Question */}
         <div className="question-box mb-4 animate-fade-in">
           <p className="text-foreground text-base leading-relaxed">
-            {language === 'en' && currentQuestion?.questionEn 
-              ? currentQuestion.questionEn 
-              : currentQuestion?.question}
+            {currentQuestion?.question}
           </p>
         </div>
 
         {/* Answers */}
         <div className="space-y-3 flex-1">
           {currentQuestion?.answers.map((answer, index) => {
-            const answerText = language === 'en' && currentQuestion.answersEn 
-              ? currentQuestion.answersEn[index] 
-              : answer;
             
             return (
               <button
@@ -142,7 +135,7 @@ const Exam: React.FC = () => {
                 <span className="flex-shrink-0 w-8 h-8 rounded bg-secondary flex items-center justify-center font-bold">
                   {index + 1}
                 </span>
-                <span className="flex-1">{answerText}</span>
+                <span className="flex-1">{answer}</span>
               </button>
             );
           })}
