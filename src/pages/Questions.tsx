@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import StartLogo from '@/components/StartLogo';
-import { generateQuestionsForSubject, getAllQuestions, subjects } from '@/data/questions';
+import { getQuestionsForSubject, getQuestionsForVehicle } from '@/data/questions';
 
 const Questions: React.FC = () => {
   const navigate = useNavigate();
@@ -13,12 +13,12 @@ const Questions: React.FC = () => {
   const [wrongCount, setWrongCount] = useState(0);
 
   const questions = useMemo(() => {
+    const vehicleId = categoryId || 'b';
     if (subjectId) {
-      return generateQuestionsForSubject(parseInt(subjectId), subjects.find(s => s.id === parseInt(subjectId))?.questionCount || 30);
+      return getQuestionsForSubject(vehicleId, parseInt(subjectId));
     }
-    return getAllQuestions();
-  }, [subjectId]);
-
+    return getQuestionsForVehicle(vehicleId);
+  }, [categoryId, subjectId]);
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
 
