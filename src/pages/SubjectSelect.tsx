@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, RotateCcw } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
 import StartLogo from '@/components/StartLogo';
 import { subjects } from '@/data/questions';
 
 const SubjectSelect: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams();
-  const { language } = useLanguage();
   const [activeSubjects, setActiveSubjects] = useState<number[]>([1, 4]);
 
   const handleSubjectClick = (subjectId: number) => {
@@ -58,7 +56,7 @@ const SubjectSelect: React.FC = () => {
                 }`}
               >
                 <span className="text-left text-sm md:text-base font-medium">
-                  {language === 'en' ? subject.nameEn : subject.name}
+                  {subject.name}
                 </span>
                 {isActive && (
                   <button
