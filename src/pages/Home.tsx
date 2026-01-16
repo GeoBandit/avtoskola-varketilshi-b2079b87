@@ -34,11 +34,8 @@ const Home: React.FC = () => {
         {/* Title */}
         <div className="text-center mt-4">
           <h1 className="text-white text-3xl md:text-4xl font-bold leading-tight">
-            {t('ავტოსკოლა', 'Start Driving school')}
+            {t('ავტოსკოლა ვარკეთილში', 'Driving School in Varketili')}
           </h1>
-          <h2 className="text-white text-3xl md:text-4xl font-bold">
-            {t('სტარტი', '')}
-          </h2>
         </div>
 
         {/* Vehicle Carousel */}
