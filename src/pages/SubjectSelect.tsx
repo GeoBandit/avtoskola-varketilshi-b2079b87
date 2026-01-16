@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, RotateCcw } from 'lucide-react';
 import StartLogo from '@/components/StartLogo';
-import { subjects } from '@/data/questions';
+import { getSubjectsForVehicle } from '@/data/questions';
 
 const SubjectSelect: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams();
   const [activeSubjects, setActiveSubjects] = useState<number[]>([1, 4]);
-
+  
+  const subjects = useMemo(() => {
+    return getSubjectsForVehicle(categoryId || 'b');
+  }, [categoryId]);
   const handleSubjectClick = (subjectId: number) => {
     navigate(`/questions/${categoryId}/${subjectId}`);
   };
