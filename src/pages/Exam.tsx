@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import StartLogo from '@/components/StartLogo';
-import { getAllQuestions } from '@/data/questions';
+import { getQuestionsForVehicle } from '@/data/questions';
 
 const EXAM_TIME = 30 * 60; // 30 minutes in seconds
 const EXAM_QUESTION_COUNT = 30;
@@ -18,10 +18,10 @@ const Exam: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
 
   const questions = useMemo(() => {
-    const allQuestions = getAllQuestions();
+    const allQuestions = getQuestionsForVehicle(categoryId || 'b');
     const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, EXAM_QUESTION_COUNT);
-  }, []);
+  }, [categoryId]);
 
   useEffect(() => {
     setAnswers(new Array(questions.length).fill(null));
@@ -102,6 +102,12 @@ const Exam: React.FC = () => {
       <div className="flex-1 bg-app-navy/90 px-4 py-4 flex flex-col">
         {/* Timer Bar */}
         <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-lg bg-card hover:bg-muted transition-colors"
+          >
+            <Home className="w-5 h-5 text-foreground" />
+          </button>
           <div className="flex items-center gap-2">
             <span className="timer-badge text-primary">{formatTime(timeLeft)}</span>
             <span className="timer-badge">

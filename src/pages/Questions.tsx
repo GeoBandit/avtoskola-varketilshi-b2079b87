@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, Home } from 'lucide-react';
 import StartLogo from '@/components/StartLogo';
 import { getQuestionsForSubject, getQuestionsForVehicle } from '@/data/questions';
 
@@ -70,6 +70,13 @@ const Questions: React.FC = () => {
             className="text-white p-2"
           >
             <ChevronLeft className="w-8 h-8" />
+          </button>
+          
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-lg bg-card hover:bg-muted transition-colors"
+          >
+            <Home className="w-5 h-5 text-foreground" />
           </button>
           
           <div className="text-white font-medium">
