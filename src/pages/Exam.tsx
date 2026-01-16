@@ -3,6 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
 import StartLogo from '@/components/StartLogo';
 import { getQuestionsForVehicle } from '@/data/questions';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const EXAM_TIME = 30 * 60; // 30 minutes in seconds
 const EXAM_QUESTION_COUNT = 30;
@@ -16,6 +26,7 @@ const Exam: React.FC = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   const questions = useMemo(() => {
     const allQuestions = getQuestionsForVehicle(categoryId || 'b');
@@ -103,7 +114,7 @@ const Exam: React.FC = () => {
         {/* Timer Bar */}
         <div className="flex items-center justify-between mb-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => setShowExitDialog(true)}
             className="p-2 rounded-lg bg-card hover:bg-muted transition-colors"
           >
             <Home className="w-5 h-5 text-foreground" />
@@ -176,6 +187,27 @@ const Exam: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent className="bg-card border-muted">
+          <AlertDialogHeader>
+            <AlertDialogTitle>გამოცდის შეწყვეტა?</AlertDialogTitle>
+            <AlertDialogDescription>
+              დარწმუნებული ხართ, რომ გსურთ გამოცდის შეწყვეტა? თქვენი პროგრესი არ შეინახება.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-muted hover:bg-muted/80">გაგრძელება</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => navigate('/')}
+              className="bg-destructive hover:bg-destructive/80"
+            >
+              გასვლა
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
