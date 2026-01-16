@@ -182,15 +182,27 @@ const Exam: React.FC = () => {
             <ChevronLeft className="w-5 h-5" />
           </button>
           
-          {[1, 2, 3].map(num => (
-            <button
-              key={num}
-              onClick={() => goToQuestion(num - 1)}
-              className={`nav-pill ${currentIndex === num - 1 ? 'border-primary bg-primary/20' : ''}`}
-            >
-              {num}
-            </button>
-          ))}
+          {currentQuestion?.answers.map((_, index) => {
+            const answerNum = index + 1;
+            const isSelected = answers[currentIndex] === index;
+            const isCorrect = answers[currentIndex] !== null && index === currentQuestion.correctAnswer;
+            const isWrong = answers[currentIndex] === index && index !== currentQuestion.correctAnswer;
+            
+            return (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(index)}
+                disabled={answers[currentIndex] !== null}
+                className={`nav-pill ${
+                  isCorrect ? 'border-primary bg-primary/30 text-primary' : 
+                  isWrong ? 'border-destructive bg-destructive/30 text-destructive' :
+                  isSelected ? 'border-primary bg-primary/20' : ''
+                } disabled:cursor-default`}
+              >
+                {answerNum}
+              </button>
+            );
+          })}
           
           <button
             onClick={handleNext}
