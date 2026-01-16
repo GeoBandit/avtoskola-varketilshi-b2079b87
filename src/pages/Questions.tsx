@@ -107,21 +107,28 @@ const Questions: React.FC = () => {
         </div>
 
         {/* Answers */}
-        <div className="space-y-3 flex-1 animate-slide-in">
-          {currentQuestion.answers.map((answer, index) => {
-            
-            return (
-              <button
-                key={index}
-                onClick={() => handleAnswerSelect(index)}
-                className={getAnswerClass(index)}
-                disabled={selectedAnswer !== null}
-              >
-                {answer}
-              </button>
-            );
-          })}
+        <div className="space-y-3 animate-slide-in">
+          {currentQuestion.answers.map((answer, index) => (
+            <button
+              key={index}
+              onClick={() => handleAnswerSelect(index)}
+              className={getAnswerClass(index)}
+              disabled={selectedAnswer !== null}
+            >
+              {answer}
+            </button>
+          ))}
         </div>
+
+        {/* Explanation */}
+        {selectedAnswer !== null && currentQuestion.explanation && (
+          <div className="mt-4 p-4 rounded-lg bg-accent/20 border border-accent/30 animate-fade-in">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-accent-foreground">განმარტება: </span>
+              {currentQuestion.explanation}
+            </p>
+          </div>
+        )}
 
         {/* Bottom Navigation */}
         <div className="flex items-center justify-between pt-6 border-t border-muted mt-6">
