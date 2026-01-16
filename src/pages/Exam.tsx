@@ -131,6 +131,20 @@ const Exam: React.FC = () => {
           <StartLogo size="small" />
         </div>
 
+        {/* Question Image */}
+        {currentQuestion?.image && (
+          <div className="mb-4 animate-fade-in">
+            <img 
+              src={currentQuestion.image} 
+              alt="კითხვის სურათი"
+              className="w-full max-h-48 object-contain rounded-lg bg-white/10"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         {/* Question */}
         <div className="question-box mb-4 animate-fade-in">
           <p className="text-foreground text-base leading-relaxed">
