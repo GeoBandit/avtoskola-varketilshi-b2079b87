@@ -16,6 +16,7 @@ import {
 
 const EXAM_TIME = 30 * 60; // 30 minutes in seconds
 const EXAM_QUESTION_COUNT = 30;
+const MAX_WRONG_ANSWERS_B = 3; // B and B1 categories allow max 3 wrong answers
 
 const Exam: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ const Exam: React.FC = () => {
   const [wrongCount, setWrongCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showFailDialog, setShowFailDialog] = useState(false);
+
+  const isBCategory = categoryId === 'b' || categoryId === 'b1';
 
   const questions = useMemo(() => {
     const allQuestions = getQuestionsForVehicle(categoryId || 'b');
@@ -71,7 +75,14 @@ const Exam: React.FC = () => {
     if (answerIndex === currentQuestion.correctAnswer) {
       setCorrectCount(prev => prev + 1);
     } else {
-      setWrongCount(prev => prev + 1);
+      const newWrongCount = wrongCount + 1;
+      setWrongCount(newWrongCount);
+      
+      // Check if B/B1 category and exceeded max wrong answers
+      if (isBCategory && newWrongCount > MAX_WRONG_ANSWERS_B) {
+        setShowFailDialog(true);
+        return; // Don't auto-advance if failed
+      }
     }
 
     // Auto advance to next question after a brief delay
@@ -238,6 +249,26 @@ const Exam: React.FC = () => {
               className="bg-destructive hover:bg-destructive/80"
             >
               გასვლა
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Fail Dialog for B/B1 categories */}
+      <AlertDialog open={showFailDialog} onOpenChange={setShowFailDialog}>
+        <AlertDialogContent className="bg-card border-muted">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">გამოცდა ჩაბარებული არ არის!</AlertDialogTitle>
+            <AlertDialogDescription>
+              თქვენ დაუშვით 4 შეცდომა. B და B1 კატეგორიის გამოცდაზე დასაშვებია მაქსიმუმ 3 შეცდომა.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => navigate('/')}
+              className="bg-destructive hover:bg-destructive/80"
+            >
+              მთავარ გვერდზე დაბრუნება
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
