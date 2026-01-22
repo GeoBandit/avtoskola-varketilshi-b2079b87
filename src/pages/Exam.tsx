@@ -73,6 +73,14 @@ const Exam: React.FC = () => {
     } else {
       setWrongCount(prev => prev + 1);
     }
+
+    // Auto advance to next question after a brief delay
+    if (currentIndex < questions.length - 1) {
+      setTimeout(() => {
+        setCurrentIndex(prev => prev + 1);
+        setSelectedAnswer(newAnswers[currentIndex + 1]);
+      }, 800);
+    }
   };
 
   const handleNext = () => {
