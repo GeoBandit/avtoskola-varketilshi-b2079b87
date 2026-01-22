@@ -39,10 +39,14 @@
     /* Custom app colors */
     --app-dark: 222 47% 11%;
     --app-card: 222 40% 18%;
-    --app-green: 0 84% 55%;
+    --app-green: 142 70% 45%;
     --app-yellow: 45 100% 51%;
     --app-blue: 199 89% 48%;
     --app-navy: 230 35% 25%;
+    
+    /* Answer feedback colors */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 100%;
 
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 0 0% 100%;
@@ -118,11 +122,13 @@
   }
 
   .card-answer-correct {
-    @apply bg-primary/20 border-primary;
+    @apply border-2;
+    background-color: hsl(142 70% 45% / 0.2);
+    border-color: hsl(142 70% 45%);
   }
 
   .card-answer-wrong {
-    @apply bg-destructive/20 border-destructive;
+    @apply bg-destructive/20 border-destructive border-2;
   }
 
   .question-box {
