@@ -16,7 +16,21 @@ import {
 
 const EXAM_TIME = 30 * 60; // 30 minutes in seconds
 const EXAM_QUESTION_COUNT = 30;
-const MAX_WRONG_ANSWERS_B = 3; // B and B1 categories allow max 3 wrong answers
+
+// Wrong answer limits by category
+const getMaxWrongAnswers = (category: string): number => {
+  switch (category) {
+    case 'b':
+    case 'b1':
+    case 'ts':
+      return 3; // B, B1, and TS categories allow max 3 wrong answers
+    case 'c':
+    case 'd':
+      return 4; // C and D categories allow max 4 wrong answers
+    default:
+      return 3;
+  }
+};
 
 const Exam: React.FC = () => {
   const navigate = useNavigate();
@@ -30,7 +44,7 @@ const Exam: React.FC = () => {
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showFailDialog, setShowFailDialog] = useState(false);
 
-  const isBCategory = categoryId === 'b' || categoryId === 'b1';
+  const maxWrongAnswers = getMaxWrongAnswers(categoryId || 'b');
 
   const questions = useMemo(() => {
     const allQuestions = getQuestionsForVehicle(categoryId || 'b');
@@ -78,8 +92,8 @@ const Exam: React.FC = () => {
       const newWrongCount = wrongCount + 1;
       setWrongCount(newWrongCount);
       
-      // Check if B/B1 category and exceeded max wrong answers
-      if (isBCategory && newWrongCount > MAX_WRONG_ANSWERS_B) {
+      // Check if exceeded max wrong answers for this category
+      if (newWrongCount > maxWrongAnswers) {
         setShowFailDialog(true);
         return; // Don't auto-advance if failed
       }
@@ -254,13 +268,13 @@ const Exam: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Fail Dialog for B/B1 categories */}
+      {/* Fail Dialog for all categories */}
       <AlertDialog open={showFailDialog} onOpenChange={setShowFailDialog}>
         <AlertDialogContent className="bg-card border-muted">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">გამოცდა ჩაბარებული არ არის!</AlertDialogTitle>
             <AlertDialogDescription>
-              თქვენ დაუშვით 4 შეცდომა. B და B1 კატეგორიის გამოცდაზე დასაშვებია მაქსიმუმ 3 შეცდომა.
+              თქვენ დაუშვით {maxWrongAnswers + 1} შეცდომა. {categoryId?.toUpperCase()} კატეგორიის გამოცდაზე დასაშვებია მაქსიმუმ {maxWrongAnswers} შეცდომა.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
