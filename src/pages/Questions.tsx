@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Info, Home, Trophy, RotateCcw, CheckCircle, 
 import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { getQuestionsForSubject, getQuestionsForVehicle } from '@/data/questions';
 import { useSubjectProgress } from '@/hooks/useSubjectProgress';
-
+import CachedImage from '@/components/CachedImage';
 const Questions: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId, subjectId } = useParams();
@@ -222,13 +222,10 @@ const Questions: React.FC = () => {
         {/* Question Image */}
         {currentQuestion.image && (
           <div className="mb-4 animate-fade-in">
-            <img 
+            <CachedImage 
               src={currentQuestion.image} 
               alt="კითხვის სურათი"
               className="w-full max-h-48 object-contain rounded-lg bg-white/10"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
             />
           </div>
         )}

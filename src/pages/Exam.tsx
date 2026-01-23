@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Home, Trophy, RotateCcw, CheckCircle, XCircle, Clock, History } from 'lucide-react';
 import { getQuestionsForVehicle } from '@/data/questions';
 import { useExamHistory } from '@/hooks/useExamHistory';
+import CachedImage from '@/components/CachedImage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -311,13 +312,10 @@ const Exam: React.FC = () => {
         {/* Question Image */}
         {currentQuestion?.image && (
           <div className="mb-4 animate-fade-in">
-            <img 
+            <CachedImage 
               src={currentQuestion.image} 
               alt="კითხვის სურათი"
               className="w-full max-h-48 object-contain rounded-lg bg-white/10"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
             />
           </div>
         )}

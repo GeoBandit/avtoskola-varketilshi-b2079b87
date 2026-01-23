@@ -1,21 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
-import { History } from 'lucide-react';
+import { History, Download, CheckCircle, Loader2 } from 'lucide-react';
 
 import VehicleCarousel from '@/components/VehicleCarousel';
 import forestRoadBg from '@/assets/forest-road-bg.jpg';
 import avtoskolaLogo from '@/assets/avtoskola-logo.png';
-import { vehicleCategories } from '@/data/questions';
+import { vehicleCategories, getQuestionsForVehicle } from '@/data/questions';
+import { cacheImages, getImageUrlsFromQuestions, getCacheStats } from '@/lib/imageCache';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+  const [cacheStatus, setCacheStatus] = useState({ count: 0, estimatedSize: 0 });
+  const [downloadComplete, setDownloadComplete] = useState(false);
+
+  // Check cache status on mount
+  useEffect(() => {
+    getCacheStats().then(setCacheStatus);
+  }, []);
 
   const handleNavigate = (mode: 'subject' | 'all' | 'exam') => {
     const categoryId = vehicleCategories[selectedCategory].id;
     navigate(`/${mode}/${categoryId}`);
+  };
+
+  const handleDownloadForOffline = async () => {
+    setIsDownloading(true);
+    setDownloadComplete(false);
+    
+    try {
+      // Get all questions for the selected category
+      const categoryId = vehicleCategories[selectedCategory].id;
+      const questions = getQuestionsForVehicle(categoryId);
+      const imageUrls = getImageUrlsFromQuestions(questions);
+      
+      setDownloadProgress({ current: 0, total: imageUrls.length });
+      
+      await cacheImages(imageUrls, (current, total) => {
+        setDownloadProgress({ current, total });
+      });
+      
+      // Update cache status
+      const newStatus = await getCacheStats();
+      setCacheStatus(newStatus);
+      setDownloadComplete(true);
+      
+      // Reset complete status after 3 seconds
+      setTimeout(() => setDownloadComplete(false), 3000);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   return (
@@ -76,6 +122,37 @@ const Home: React.FC = () => {
             <History className="w-5 h-5" />
             {t('ისტორია', 'History')}
           </button>
+
+          {/* Download for Offline Button */}
+          <button
+            onClick={handleDownloadForOffline}
+            disabled={isDownloading}
+            className="btn-menu flex items-center justify-center gap-2 bg-primary/80 hover:bg-primary"
+          >
+            {isDownloading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {t('ჩამოტვირთვა', 'Downloading')} ({downloadProgress.current}/{downloadProgress.total})
+              </>
+            ) : downloadComplete ? (
+              <>
+                <CheckCircle className="w-5 h-5 text-success" />
+                {t('ჩამოტვირთულია!', 'Downloaded!')}
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                {t('ოფლაინ რეჟიმისთვის', 'Download for Offline')}
+              </>
+            )}
+          </button>
+
+          {/* Cache Status */}
+          {cacheStatus.count > 0 && (
+            <p className="text-center text-white/60 text-sm">
+              {t('ქეშირებული სურათები', 'Cached images')}: {cacheStatus.count} ({formatSize(cacheStatus.estimatedSize)})
+            </p>
+          )}
         </div>
 
       </div>
