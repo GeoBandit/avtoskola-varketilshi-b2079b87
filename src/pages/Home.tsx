@@ -25,10 +25,11 @@ const Home: React.FC = () => {
       {/* Overlay */}
       <div className="min-h-screen bg-black/40 flex flex-col">
         {/* Header */}
-        <header className="flex justify-start items-start p-4 pt-6">
+        <header className="flex justify-between items-center p-4 pt-6">
           <div className="text-white/80 text-sm font-medium">
             574-747-581
           </div>
+          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-12 w-auto" />
         </header>
 
         {/* Title */}
@@ -68,10 +69,6 @@ const Home: React.FC = () => {
           </button>
         </div>
 
-        {/* Footer Logo */}
-        <div className="flex justify-center pb-8">
-          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-16 w-auto" />
-        </div>
       </div>
     </div>
   );
