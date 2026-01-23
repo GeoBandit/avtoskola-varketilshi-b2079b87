@@ -39,13 +39,14 @@ export default defineConfig(({ mode }) => ({
           },
           {
             // Cache starti.ge exam images for offline use
-            urlPattern: /^https:\/\/www\.starti\.ge\/exam\/.*/i,
+            urlPattern: /^https?:\/\/(?:www\.)?starti\.ge\/exam\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "exam-images-cache",
               expiration: {
-                maxEntries: 2000,
+                maxEntries: 6000,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                purgeOnQuotaError: true,
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -53,13 +54,15 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+            // Ensure image URLs with query params (e.g. .jpg?v=123) are cached too
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)(?:\?.*)?$/i,
             handler: "CacheFirst",
             options: {
               cacheName: "images-cache",
               expiration: {
-                maxEntries: 500,
+                maxEntries: 2000,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                purgeOnQuotaError: true,
               },
               cacheableResponse: {
                 statuses: [0, 200],
@@ -75,6 +78,7 @@ export default defineConfig(({ mode }) => ({
               expiration: {
                 maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                purgeOnQuotaError: true,
               },
               cacheableResponse: {
                 statuses: [0, 200],
