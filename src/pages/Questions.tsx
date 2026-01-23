@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Info, Home } from 'lucide-react';
 import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { getQuestionsForSubject, getQuestionsForVehicle } from '@/data/questions';
+import { useSubjectProgress } from '@/hooks/useSubjectProgress';
 
 const Questions: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const Questions: React.FC = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
+  
+  const { updateProgress } = useSubjectProgress(categoryId || 'b');
 
   const questions = useMemo(() => {
     const vehicleId = categoryId || 'b';
@@ -19,8 +22,16 @@ const Questions: React.FC = () => {
     }
     return getQuestionsForVehicle(vehicleId);
   }, [categoryId, subjectId]);
+
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
+
+  // Update progress when answering questions
+  useEffect(() => {
+    if (subjectId && selectedAnswer !== null) {
+      updateProgress(parseInt(subjectId), currentIndex, totalQuestions, wrongCount);
+    }
+  }, [currentIndex, selectedAnswer, wrongCount, subjectId, totalQuestions, updateProgress]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (selectedAnswer !== null) return;
