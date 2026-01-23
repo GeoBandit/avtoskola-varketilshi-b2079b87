@@ -23,7 +23,7 @@ const Home: React.FC = () => {
       style={{ backgroundImage: `url(${forestRoadBg})` }}
     >
       {/* Overlay */}
-      <div className="min-h-screen bg-black/40 flex flex-col">
+      <div className="min-h-screen bg-black/60 flex flex-col">
         {/* Header */}
         <header className="flex justify-between items-center p-4 pt-6">
           <a href="tel:574747581" className="text-white/80 text-sm font-medium hover:text-white transition-colors">
