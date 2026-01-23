@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
-import LanguageSelector from '@/components/LanguageSelector';
+
 import VehicleCarousel from '@/components/VehicleCarousel';
 import forestRoadBg from '@/assets/forest-road-bg.jpg';
 import avtoskolaLogo from '@/assets/avtoskola-logo.png';
@@ -25,11 +25,10 @@ const Home: React.FC = () => {
       {/* Overlay */}
       <div className="min-h-screen bg-black/40 flex flex-col">
         {/* Header */}
-        <header className="flex justify-between items-start p-4 pt-6">
+        <header className="flex justify-start items-start p-4 pt-6">
           <div className="text-white/80 text-sm font-medium">
             574-747-581
           </div>
-          <LanguageSelector />
         </header>
 
         {/* Title */}
