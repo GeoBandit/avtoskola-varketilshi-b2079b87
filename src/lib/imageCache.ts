@@ -22,23 +22,44 @@ export async function isImageCached(url: string): Promise<boolean> {
  * Cache a single image
  */
 export async function cacheImage(url: string): Promise<boolean> {
+  const prefetchOnly = async () => {
+    // Helps Workbox/service-worker runtime caching even when CORS blocks Cache API blob usage.
+    try {
+      await fetch(url, { mode: 'no-cors' });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   try {
+    // If Cache API isn't available, fall back to a simple prefetch.
+    if (typeof caches === 'undefined') {
+      return await prefetchOnly();
+    }
+
     const cache = await caches.open(CACHE_NAME);
     
     // Check if already cached
     const existing = await cache.match(url);
     if (existing) return true;
     
-    // Fetch and cache
-    const response = await fetch(url, { mode: 'cors' });
-    if (response.ok) {
-      await cache.put(url, response.clone());
-      return true;
+    // Fetch and cache (only works when the remote host allows CORS)
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      if (response.ok) {
+        await cache.put(url, response.clone());
+        return true;
+      }
+    } catch {
+      // CORS/network failure: we'll try a no-cors prefetch below.
     }
-    return false;
+
+    // If CORS prevented caching, still try to prefetch so the PWA service worker can cache it.
+    return await prefetchOnly();
   } catch (error) {
     console.warn('Failed to cache image:', url, error);
-    return false;
+    return await prefetchOnly();
   }
 }
 
@@ -47,20 +68,33 @@ export async function cacheImage(url: string): Promise<boolean> {
  */
 export async function getCachedImage(url: string): Promise<string> {
   try {
+    if (typeof caches === 'undefined') return url;
+
     const cache = await caches.open(CACHE_NAME);
     const cachedResponse = await cache.match(url);
     
     if (cachedResponse) {
+      // If the response is opaque (no-cors), we can't safely turn it into a blob.
+      // In that case, return the original URL and let the service worker/browser handle it.
+      if (cachedResponse.type === 'opaque') {
+        return url;
+      }
+
       const blob = await cachedResponse.blob();
       return URL.createObjectURL(blob);
     }
     
     // Not in cache, try network and cache it
-    const response = await fetch(url, { mode: 'cors' });
-    if (response.ok) {
-      await cache.put(url, response.clone());
-      const blob = await response.blob();
-      return URL.createObjectURL(blob);
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      if (response.ok) {
+        await cache.put(url, response.clone());
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+      }
+    } catch {
+      // If CORS fails, fall through to returning the original URL.
+      // (Offline PWA can still work via Workbox runtime caching.)
     }
   } catch (error) {
     console.warn('Failed to get cached image:', url, error);
@@ -131,8 +165,12 @@ export async function getCacheStats(): Promise<{ count: number; estimatedSize: n
     for (const request of keys) {
       const response = await cache.match(request);
       if (response) {
-        const blob = await response.clone().blob();
-        estimatedSize += blob.size;
+        try {
+          const blob = await response.clone().blob();
+          estimatedSize += blob.size;
+        } catch {
+          // Ignore responses we can't size (e.g., opaque)
+        }
       }
     }
     

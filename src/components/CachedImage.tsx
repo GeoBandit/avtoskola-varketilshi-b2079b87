@@ -18,7 +18,7 @@ const CachedImage: React.FC<CachedImageProps> = ({
   ...props 
 }) => {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [hasError, setHasError] = useState(false);
+  const [isErrored, setIsErrored] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,7 +33,7 @@ const CachedImage: React.FC<CachedImageProps> = ({
             objectUrl = cachedSrc;
           }
           setImageSrc(cachedSrc);
-          setHasError(false);
+          setIsErrored(false);
         }
       } catch {
         if (isMounted) {
@@ -54,14 +54,19 @@ const CachedImage: React.FC<CachedImageProps> = ({
   }, [src]);
 
   const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    setHasError(true);
-    if (fallbackSrc) {
+    // If a fallback is provided, try it once before marking as errored.
+    if (fallbackSrc && imageSrc !== fallbackSrc) {
       setImageSrc(fallbackSrc);
+      setIsErrored(false);
+      onError?.(e);
+      return;
     }
+
+    setIsErrored(true);
     onError?.(e);
   };
 
-  if (!imageSrc || hasError) {
+  if (!imageSrc || isErrored) {
     return null;
   }
 
