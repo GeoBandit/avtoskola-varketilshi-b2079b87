@@ -4,6 +4,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import LanguageSelector from '@/components/LanguageSelector';
 import VehicleCarousel from '@/components/VehicleCarousel';
 import forestRoadBg from '@/assets/forest-road-bg.jpg';
+import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { vehicleCategories } from '@/data/questions';
 
 const Home: React.FC = () => {
@@ -70,7 +71,7 @@ const Home: React.FC = () => {
 
         {/* Footer Logo */}
         <div className="flex justify-center pb-8">
-          <div className="text-primary text-2xl">❋</div>
+          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-16 w-auto" />
         </div>
       </div>
     </div>
