@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Trophy, RotateCcw, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { getQuestionsForVehicle } from '@/data/questions';
 import {
   AlertDialog,
@@ -42,6 +42,8 @@ const Exam: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showFailDialog, setShowFailDialog] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [finalTime, setFinalTime] = useState(0);
 
   const maxWrongAnswers = getMaxWrongAnswers(categoryId || 'b');
 
@@ -56,10 +58,14 @@ const Exam: React.FC = () => {
   }, [questions.length]);
 
   useEffect(() => {
+    if (isCompleted) return;
+    
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 0) {
           clearInterval(timer);
+          setFinalTime(EXAM_TIME);
+          setIsCompleted(true);
           return 0;
         }
         return prev - 1;
@@ -67,7 +73,7 @@ const Exam: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isCompleted]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -85,10 +91,14 @@ const Exam: React.FC = () => {
     setAnswers(newAnswers);
     setSelectedAnswer(answerIndex);
 
+    let newCorrectCount = correctCount;
+    let newWrongCount = wrongCount;
+
     if (answerIndex === currentQuestion.correctAnswer) {
-      setCorrectCount(prev => prev + 1);
+      newCorrectCount = correctCount + 1;
+      setCorrectCount(newCorrectCount);
     } else {
-      const newWrongCount = wrongCount + 1;
+      newWrongCount = wrongCount + 1;
       setWrongCount(newWrongCount);
       
       // Check if exceeded max wrong answers for this category
@@ -96,6 +106,16 @@ const Exam: React.FC = () => {
         setShowFailDialog(true);
         return; // Don't auto-advance if failed
       }
+    }
+
+    // Check if this was the last question
+    const isLastQuestion = currentIndex === questions.length - 1;
+    if (isLastQuestion) {
+      setTimeout(() => {
+        setFinalTime(EXAM_TIME - timeLeft);
+        setIsCompleted(true);
+      }, 800);
+      return;
     }
 
     // Auto advance to next question after a brief delay
@@ -121,9 +141,8 @@ const Exam: React.FC = () => {
     }
   };
 
-  const goToQuestion = (index: number) => {
-    setCurrentIndex(index);
-    setSelectedAnswer(answers[index]);
+  const handleRetry = () => {
+    window.location.reload();
   };
 
   const getAnswerClass = (index: number) => {
@@ -133,6 +152,104 @@ const Exam: React.FC = () => {
     if (index === currentAnswer && index !== currentQuestion.correctAnswer) return 'card-answer card-answer-wrong';
     return 'card-answer opacity-50';
   };
+
+  const scorePercentage = Math.round((correctCount / questions.length) * 100);
+  const isPassed = wrongCount <= maxWrongAnswers;
+
+  // Exam Results Screen
+  if (isCompleted) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="bg-black/30 py-2">
+          <div className="h-12" />
+        </header>
+
+        <div className="flex-1 bg-app-navy/90 px-4 py-6 flex flex-col items-center justify-center">
+          <div className="w-full max-w-md text-center animate-fade-in">
+            {/* Trophy/Result Icon */}
+            <div className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6 ${
+              isPassed ? 'bg-success/20' : 'bg-destructive/20'
+            }`}>
+              <Trophy className={`w-12 h-12 ${isPassed ? 'text-success' : 'text-destructive'}`} />
+            </div>
+
+            {/* Title */}
+            <h1 className={`text-2xl font-bold mb-2 ${isPassed ? 'text-success' : 'text-destructive'}`}>
+              {isPassed ? 'გამოცდა ჩაბარებულია!' : 'გამოცდა ჩაბარებული არ არის'}
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              კატეგორია: {categoryId?.toUpperCase()} • მაქსიმუმ {maxWrongAnswers} შეცდომა დასაშვები
+            </p>
+
+            {/* Score Circle */}
+            <div className="relative mx-auto w-40 h-40 mb-6">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="70"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  className="text-muted"
+                />
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="70"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  strokeDasharray={`${scorePercentage * 4.4} 440`}
+                  className={isPassed ? 'text-success' : 'text-destructive'}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-bold text-foreground">{scorePercentage}%</span>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-card">
+                <CheckCircle className="w-6 h-6 text-success" />
+                <span className="text-xl font-bold text-foreground">{correctCount}</span>
+                <span className="text-xs text-muted-foreground">სწორი</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-card">
+                <XCircle className="w-6 h-6 text-destructive" />
+                <span className="text-xl font-bold text-foreground">{wrongCount}</span>
+                <span className="text-xs text-muted-foreground">შეცდომა</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-card">
+                <Clock className="w-6 h-6 text-accent" />
+                <span className="text-xl font-bold text-foreground">{formatTime(finalTime)}</span>
+                <span className="text-xs text-muted-foreground">დრო</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <button
+                onClick={handleRetry}
+                className="w-full btn-menu flex items-center justify-center gap-2"
+              >
+                <RotateCcw className="w-5 h-5" />
+                თავიდან დაწყება
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="w-full btn-menu flex items-center justify-center gap-2"
+              >
+                <Home className="w-5 h-5" />
+                მთავარი
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
