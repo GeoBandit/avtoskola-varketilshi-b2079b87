@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
-import { History, Download, CheckCircle, Loader2 } from 'lucide-react';
+import { History, Download, CheckCircle, Loader2, Trash2 } from 'lucide-react';
 
 import VehicleCarousel from '@/components/VehicleCarousel';
 import { Progress } from '@/components/ui/progress';
 import forestRoadBg from '@/assets/forest-road-bg.jpg';
 import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { vehicleCategories, getQuestionsForVehicle } from '@/data/questions';
-import { cacheImages, getImageUrlsFromQuestions, getCacheStats } from '@/lib/imageCache';
+import { cacheImages, getImageUrlsFromQuestions, getCacheStats, clearImageCache } from '@/lib/imageCache';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -168,11 +168,23 @@ const Home: React.FC = () => {
               </div>
             )}
 
-            {/* Cache Status */}
+            {/* Cache Status & Clear Button */}
             {cacheStatus.count > 0 && !isDownloading && (
-              <p className="text-center text-white/60 text-sm">
-                {t('ქეშირებული სურათები', 'Cached images')}: {cacheStatus.count} ({formatSize(cacheStatus.estimatedSize)})
-              </p>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <p className="text-white/60 text-sm">
+                  {t('ქეშირებული სურათები', 'Cached images')}: {cacheStatus.count} ({formatSize(cacheStatus.estimatedSize)})
+                </p>
+                <button
+                  onClick={async () => {
+                    await clearImageCache();
+                    setCacheStatus({ count: 0, estimatedSize: 0 });
+                  }}
+                  className="flex items-center gap-1 text-red-400 hover:text-red-300 text-sm transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {t('წაშლა', 'Clear')}
+                </button>
+              </div>
             )}
           </div>
         </div>
