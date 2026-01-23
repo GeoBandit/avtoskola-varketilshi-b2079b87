@@ -106,6 +106,8 @@ const Exam: React.FC = () => {
       
       // Check if exceeded max wrong answers for this category
       if (newWrongCount > maxWrongAnswers) {
+        setFinalTime(EXAM_TIME - timeLeft);
+        setIsCompleted(true);
         setShowFailDialog(true);
         return; // Don't auto-advance if failed
       }
