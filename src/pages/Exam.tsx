@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Home, Trophy, RotateCcw, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Trophy, RotateCcw, CheckCircle, XCircle, Clock, History } from 'lucide-react';
 import { getQuestionsForVehicle } from '@/data/questions';
+import { useExamHistory } from '@/hooks/useExamHistory';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +45,9 @@ const Exam: React.FC = () => {
   const [showFailDialog, setShowFailDialog] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [finalTime, setFinalTime] = useState(0);
-
+  const hasSavedResult = useRef(false);
+  
+  const { saveAttempt } = useExamHistory();
   const maxWrongAnswers = getMaxWrongAnswers(categoryId || 'b');
 
   const questions = useMemo(() => {
@@ -156,6 +159,22 @@ const Exam: React.FC = () => {
   const scorePercentage = Math.round((correctCount / questions.length) * 100);
   const isPassed = wrongCount <= maxWrongAnswers;
 
+  // Save exam result when completed
+  useEffect(() => {
+    if (isCompleted && !hasSavedResult.current) {
+      hasSavedResult.current = true;
+      saveAttempt({
+        categoryId: categoryId || 'b',
+        correctCount,
+        wrongCount,
+        totalQuestions: questions.length,
+        timeSpent: finalTime,
+        passed: wrongCount <= maxWrongAnswers,
+        maxWrongAllowed: maxWrongAnswers,
+      });
+    }
+  }, [isCompleted, categoryId, correctCount, wrongCount, questions.length, finalTime, maxWrongAnswers, saveAttempt]);
+
   // Exam Results Screen
   if (isCompleted) {
     return (
@@ -236,6 +255,13 @@ const Exam: React.FC = () => {
               >
                 <RotateCcw className="w-5 h-5" />
                 თავიდან დაწყება
+              </button>
+              <button
+                onClick={() => navigate('/history')}
+                className="w-full btn-menu flex items-center justify-center gap-2"
+              >
+                <History className="w-5 h-5" />
+                ისტორია
               </button>
               <button
                 onClick={() => navigate('/')}

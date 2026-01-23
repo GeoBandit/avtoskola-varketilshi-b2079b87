@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
+import { History } from 'lucide-react';
 
 import VehicleCarousel from '@/components/VehicleCarousel';
 import forestRoadBg from '@/assets/forest-road-bg.jpg';
@@ -66,6 +67,14 @@ const Home: React.FC = () => {
             className="btn-menu"
           >
             {t('გამოცდა', 'Exam')}
+          </button>
+          
+          <button
+            onClick={() => navigate('/history')}
+            className="btn-menu flex items-center justify-center gap-2"
+          >
+            <History className="w-5 h-5" />
+            {t('ისტორია', 'History')}
           </button>
         </div>
 

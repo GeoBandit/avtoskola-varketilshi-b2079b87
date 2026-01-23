@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import SubjectSelect from "./pages/SubjectSelect";
 import Questions from "./pages/Questions";
 import Exam from "./pages/Exam";
+import ExamHistory from "./pages/ExamHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/all/:categoryId" element={<Questions />} />
             <Route path="/questions/:categoryId/:subjectId" element={<Questions />} />
             <Route path="/exam/:categoryId" element={<Exam />} />
+            <Route path="/history" element={<ExamHistory />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
