@@ -26,9 +26,9 @@ const Home: React.FC = () => {
       <div className="min-h-screen bg-black/40 flex flex-col">
         {/* Header */}
         <header className="flex justify-between items-center p-4 pt-6">
-          <div className="text-white/80 text-sm font-medium">
+          <a href="tel:574747581" className="text-white/80 text-sm font-medium hover:text-white transition-colors">
             574-747-581
-          </div>
+          </a>
           <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-12 w-auto" />
         </header>
 
