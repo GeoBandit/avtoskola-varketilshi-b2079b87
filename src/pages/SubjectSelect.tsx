@@ -52,12 +52,15 @@ const SubjectSelect: React.FC = () => {
             const progress = getSubjectProgress(subject.id);
             const isInProgress = progress?.status === 'in_progress';
             const isCompleted = progress?.status === 'completed';
+            const progressPercent = progress 
+              ? Math.round(((progress.currentIndex + 1) / progress.totalQuestions) * 100)
+              : 0;
             
             return (
               <button
                 key={subject.id}
                 onClick={() => handleSubjectClick(subject.id)}
-                className={`w-full flex items-center justify-between py-4 px-5 rounded-xl transition-all duration-200 ${
+                className={`w-full flex items-center justify-between py-4 px-5 rounded-xl transition-all duration-200 relative overflow-hidden ${
                   isCompleted
                     ? 'bg-success/20 border-2 border-success text-foreground'
                     : isInProgress 
@@ -65,7 +68,15 @@ const SubjectSelect: React.FC = () => {
                       : 'bg-card border border-muted text-foreground hover:border-primary'
                 }`}
               >
-                <span className="text-left text-sm md:text-base font-medium flex items-center gap-3">
+                {/* Progress bar background */}
+                {isInProgress && (
+                  <div 
+                    className="absolute left-0 top-0 bottom-0 bg-accent-foreground/10 transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                )}
+                
+                <span className="text-left text-sm md:text-base font-medium flex items-center gap-3 relative z-10">
                   {isCompleted && (
                     <span className="flex items-center justify-center w-6 h-6 rounded-full bg-success text-white">
                       <Check className="w-4 h-4" />
@@ -73,18 +84,31 @@ const SubjectSelect: React.FC = () => {
                   )}
                   {subject.name}
                 </span>
-                {(isInProgress || isCompleted) && (
-                  <button
-                    onClick={(e) => handleResetSubject(e, subject.id)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      isCompleted 
-                        ? 'bg-success/30 hover:bg-success/40' 
-                        : 'bg-accent-foreground/20 hover:bg-accent-foreground/30'
-                    }`}
-                  >
-                    <RotateCcw className="w-5 h-5" />
-                  </button>
-                )}
+                
+                <div className="flex items-center gap-3 relative z-10">
+                  {isInProgress && (
+                    <span className="text-sm font-bold">
+                      {progressPercent}%
+                    </span>
+                  )}
+                  {isCompleted && (
+                    <span className="text-sm font-bold text-success">
+                      100%
+                    </span>
+                  )}
+                  {(isInProgress || isCompleted) && (
+                    <button
+                      onClick={(e) => handleResetSubject(e, subject.id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isCompleted 
+                          ? 'bg-success/30 hover:bg-success/40' 
+                          : 'bg-accent-foreground/20 hover:bg-accent-foreground/30'
+                      }`}
+                    >
+                      <RotateCcw className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
               </button>
             );
           })}
