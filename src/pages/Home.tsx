@@ -4,6 +4,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { History, Download, CheckCircle, Loader2 } from 'lucide-react';
 
 import VehicleCarousel from '@/components/VehicleCarousel';
+import { Progress } from '@/components/ui/progress';
 import forestRoadBg from '@/assets/forest-road-bg.jpg';
 import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { vehicleCategories, getQuestionsForVehicle } from '@/data/questions';
@@ -14,7 +15,7 @@ const Home: React.FC = () => {
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0, category: '' });
   const [cacheStatus, setCacheStatus] = useState({ count: 0, estimatedSize: 0 });
   const [downloadComplete, setDownloadComplete] = useState(false);
 
@@ -33,15 +34,20 @@ const Home: React.FC = () => {
     setDownloadComplete(false);
     
     try {
-      // Get all questions for the selected category
-      const categoryId = vehicleCategories[selectedCategory].id;
-      const questions = getQuestionsForVehicle(categoryId);
-      const imageUrls = getImageUrlsFromQuestions(questions);
+      // Collect all unique image URLs from ALL vehicle categories
+      const allImageUrls = new Set<string>();
       
-      setDownloadProgress({ current: 0, total: imageUrls.length });
+      for (const category of vehicleCategories) {
+        const questions = getQuestionsForVehicle(category.id);
+        const urls = getImageUrlsFromQuestions(questions);
+        urls.forEach(url => allImageUrls.add(url));
+      }
       
-      await cacheImages(imageUrls, (current, total) => {
-        setDownloadProgress({ current, total });
+      const uniqueUrls = Array.from(allImageUrls);
+      setDownloadProgress({ current: 0, total: uniqueUrls.length, category: t('ყველა კატეგორია', 'All categories') });
+      
+      await cacheImages(uniqueUrls, (current, total) => {
+        setDownloadProgress({ current, total, category: t('ყველა კატეგორია', 'All categories') });
       });
       
       // Update cache status
@@ -63,6 +69,10 @@ const Home: React.FC = () => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
+
+  const progressPercent = downloadProgress.total > 0 
+    ? Math.round((downloadProgress.current / downloadProgress.total) * 100) 
+    : 0;
 
   return (
     <div 
@@ -123,36 +133,48 @@ const Home: React.FC = () => {
             {t('ისტორია', 'History')}
           </button>
 
-          {/* Download for Offline Button */}
-          <button
-            onClick={handleDownloadForOffline}
-            disabled={isDownloading}
-            className="btn-menu flex items-center justify-center gap-2 bg-primary/80 hover:bg-primary"
-          >
-            {isDownloading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {t('ჩამოტვირთვა', 'Downloading')} ({downloadProgress.current}/{downloadProgress.total})
-              </>
-            ) : downloadComplete ? (
-              <>
-                <CheckCircle className="w-5 h-5 text-success" />
-                {t('ჩამოტვირთულია!', 'Downloaded!')}
-              </>
-            ) : (
-              <>
-                <Download className="w-5 h-5" />
-                {t('ოფლაინ რეჟიმისთვის', 'Download for Offline')}
-              </>
-            )}
-          </button>
+          {/* Download for Offline Section */}
+          <div className="space-y-3">
+            <button
+              onClick={handleDownloadForOffline}
+              disabled={isDownloading}
+              className="btn-menu w-full flex items-center justify-center gap-2 bg-primary/80 hover:bg-primary disabled:opacity-70"
+            >
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {t('ჩამოტვირთვა', 'Downloading')}...
+                </>
+              ) : downloadComplete ? (
+                <>
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  {t('ჩამოტვირთულია!', 'Downloaded!')}
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  {t('ყველას ჩამოტვირთვა ოფლაინისთვის', 'Download All for Offline')}
+                </>
+              )}
+            </button>
 
-          {/* Cache Status */}
-          {cacheStatus.count > 0 && (
-            <p className="text-center text-white/60 text-sm">
-              {t('ქეშირებული სურათები', 'Cached images')}: {cacheStatus.count} ({formatSize(cacheStatus.estimatedSize)})
-            </p>
-          )}
+            {/* Progress Bar */}
+            {isDownloading && (
+              <div className="space-y-2">
+                <Progress value={progressPercent} className="h-3 bg-white/20" />
+                <p className="text-center text-white/80 text-sm">
+                  {downloadProgress.current} / {downloadProgress.total} ({progressPercent}%)
+                </p>
+              </div>
+            )}
+
+            {/* Cache Status */}
+            {cacheStatus.count > 0 && !isDownloading && (
+              <p className="text-center text-white/60 text-sm">
+                {t('ქეშირებული სურათები', 'Cached images')}: {cacheStatus.count} ({formatSize(cacheStatus.estimatedSize)})
+              </p>
+            )}
+          </div>
         </div>
 
       </div>
