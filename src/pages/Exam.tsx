@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Home } from 'lucide-react';
-import StartLogo from '@/components/StartLogo';
+import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { getQuestionsForVehicle } from '@/data/questions';
 import {
   AlertDialog,
@@ -161,7 +161,7 @@ const Exam: React.FC = () => {
             <span className="timer-badge text-destructive">{wrongCount}</span>
             <span className="timer-badge text-muted-foreground">#{currentQuestion?.id || 0}</span>
           </div>
-          <StartLogo size="small" />
+          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-10 w-auto" />
         </div>
 
         {/* Question Image */}
