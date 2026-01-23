@@ -156,7 +156,7 @@ const Exam: React.FC = () => {
             <span className="timer-badge">
               {currentIndex + 1}({questions.length})
             </span>
-            <span className="timer-badge text-primary">{correctCount}</span>
+            <span className="timer-badge text-success">{correctCount}</span>
             <span className="timer-badge text-destructive">{wrongCount}</span>
             <span className="timer-badge text-muted-foreground">#{currentQuestion?.id || 0}</span>
           </div>
