@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, RotateCcw } from 'lucide-react';
-import StartLogo from '@/components/StartLogo';
+import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { getSubjectsForVehicle } from '@/data/questions';
 
 const SubjectSelect: React.FC = () => {
@@ -39,7 +39,7 @@ const SubjectSelect: React.FC = () => {
             <ChevronLeft className="w-8 h-8" />
           </button>
           
-          <StartLogo size="medium" />
+          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-12 w-auto" />
           
           <div className="w-12" />
         </div>

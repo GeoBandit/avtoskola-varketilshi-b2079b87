@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Info, Home } from 'lucide-react';
-import StartLogo from '@/components/StartLogo';
+import avtoskolaLogo from '@/assets/avtoskola-logo.png';
 import { getQuestionsForSubject, getQuestionsForVehicle } from '@/data/questions';
 
 const Questions: React.FC = () => {
@@ -83,7 +83,7 @@ const Questions: React.FC = () => {
             {currentIndex + 1}/{totalQuestions}
           </div>
           
-          <StartLogo size="small" />
+          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-10 w-auto" />
           
           <div className="flex items-center gap-2 text-sm">
             <span className="text-primary font-bold">{correctCount}</span>
