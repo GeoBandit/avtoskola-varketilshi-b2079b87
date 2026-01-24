@@ -21,26 +21,26 @@ const VehicleCarousel: React.FC<VehicleCarouselProps> = ({ selectedCategory, onC
   const getIcon = (iconType: string) => {
     switch (iconType) {
       case 'car':
-        return <Car className="w-24 h-24 text-white" strokeWidth={1.5} />;
+        return <Car className="w-16 h-16 text-white" strokeWidth={1.5} />;
       case 'truck':
-        return <Truck className="w-24 h-24 text-white" strokeWidth={1.5} />;
+        return <Truck className="w-16 h-16 text-white" strokeWidth={1.5} />;
       case 'bus':
-        return <Bus className="w-24 h-24 text-white" strokeWidth={1.5} />;
+        return <Bus className="w-16 h-16 text-white" strokeWidth={1.5} />;
       case 'tractor':
         return (
-          <svg className="w-24 h-24 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg className="w-16 h-16 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <circle cx="7" cy="17" r="3" />
             <circle cx="17" cy="17" r="2" />
             <path d="M14 17H10M5 17V9a2 2 0 012-2h6l3 4h2a2 2 0 012 2v4" />
           </svg>
         );
       default:
-        return <Car className="w-24 h-24 text-white" strokeWidth={1.5} />;
+        return <Car className="w-16 h-16 text-white" strokeWidth={1.5} />;
     }
   };
 
   return (
-    <div className="flex items-center justify-center gap-6 py-6">
+    <div className="flex items-center justify-center gap-6 py-3">
       <button
         onClick={goToPrevious}
         className="text-white/70 hover:text-white transition-colors p-2"
@@ -50,7 +50,7 @@ const VehicleCarousel: React.FC<VehicleCarouselProps> = ({ selectedCategory, onC
 
       <div className="flex flex-col items-center animate-fade-in">
         {getIcon(category.icon)}
-        <span className="text-white text-2xl font-semibold mt-2">{category.name}</span>
+        <span className="text-white text-xl font-semibold mt-1">{category.name}</span>
       </div>
 
       <button

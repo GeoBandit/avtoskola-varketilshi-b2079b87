@@ -85,16 +85,16 @@ const Home: React.FC = () => {
       {/* Overlay */}
       <div className="min-h-screen bg-black/60 flex flex-col">
         {/* Header */}
-        <header className="flex justify-between items-center p-4 pt-6">
+        <header className="flex justify-between items-center p-4 pt-4">
           <a href="tel:574747581" className="text-white/80 text-sm font-medium hover:text-white transition-colors">
             574-747-581
           </a>
-          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-12 w-auto" />
+          <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-10 w-auto" />
         </header>
 
         {/* Title */}
-        <div className="text-center mt-4">
-          <h1 className="text-white text-3xl md:text-4xl font-bold leading-tight">
+        <div className="text-center mt-1">
+          <h1 className="text-white text-2xl md:text-3xl font-bold leading-tight">
             {t('ავტოსკოლა ვარკეთილში', 'Driving School in Varketili')}
           </h1>
         </div>
@@ -106,7 +106,7 @@ const Home: React.FC = () => {
         />
 
         {/* Menu Buttons */}
-        <div className="flex-1 flex flex-col justify-center px-6 gap-4 max-w-md mx-auto w-full pb-20">
+        <div className="flex-1 flex flex-col justify-center px-6 gap-3 max-w-md mx-auto w-full pb-4">
           <button
             onClick={() => handleNavigate('subject')}
             className="btn-menu"
@@ -137,7 +137,7 @@ const Home: React.FC = () => {
           </button>
 
           {/* Download for Offline Section */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <button
               onClick={handleDownloadForOffline}
               disabled={isDownloading}
