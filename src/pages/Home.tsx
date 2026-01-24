@@ -19,9 +19,15 @@ const Home: React.FC = () => {
   const [cacheStatus, setCacheStatus] = useState({ count: 0, estimatedSize: 0 });
   const [downloadComplete, setDownloadComplete] = useState(false);
 
-  // Check cache status on mount
+  // Check cache status on mount and set download complete if cached
   useEffect(() => {
-    getCacheStats().then(setCacheStatus);
+    getCacheStats().then(stats => {
+      setCacheStatus(stats);
+      // If we have cached images, mark as downloaded
+      if (stats.count > 0) {
+        setDownloadComplete(true);
+      }
+    });
   }, []);
 
   const handleNavigate = (mode: 'subject' | 'all' | 'exam') => {
@@ -54,9 +60,6 @@ const Home: React.FC = () => {
       const newStatus = await getCacheStats();
       setCacheStatus(newStatus);
       setDownloadComplete(true);
-      
-      // Reset complete status after 3 seconds
-      setTimeout(() => setDownloadComplete(false), 3000);
     } catch (error) {
       console.error('Download failed:', error);
     } finally {
@@ -178,6 +181,7 @@ const Home: React.FC = () => {
                   onClick={async () => {
                     await clearImageCache();
                     setCacheStatus({ count: 0, estimatedSize: 0 });
+                    setDownloadComplete(false);
                   }}
                   className="flex items-center gap-1 text-red-400 hover:text-red-300 text-sm transition-colors"
                 >
