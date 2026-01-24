@@ -156,7 +156,7 @@ const Home: React.FC = () => {
               ) : (
                 <>
                   <Download className="w-5 h-5" />
-                  {t('ყველას ჩამოტვირთვა ოფლაინისთვის', 'Download All for Offline')}
+                  {t('ოფლაინ რეჟიმი', 'Offline Mode')}
                 </>
               )}
             </button>
