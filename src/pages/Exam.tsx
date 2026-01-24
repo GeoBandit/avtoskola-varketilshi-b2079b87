@@ -37,8 +37,9 @@ const Exam: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [questionOrder, setQuestionOrder] = useState<number[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [answers, setAnswers] = useState<Map<number, number>>(new Map());
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
@@ -59,7 +60,8 @@ const Exam: React.FC = () => {
   }, [categoryId]);
 
   useEffect(() => {
-    setAnswers(new Array(questions.length).fill(null));
+    // Initialize question order as 0, 1, 2, ... n-1
+    setQuestionOrder(questions.map((_, idx) => idx));
   }, [questions.length]);
 
   useEffect(() => {
@@ -86,13 +88,16 @@ const Exam: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const currentQuestion = questions[currentIndex];
+  // Get the actual question based on the current position in the order
+  const currentQuestionIdx = questionOrder[currentIndex];
+  const currentQuestion = questions[currentQuestionIdx];
 
   const handleAnswerSelect = (answerIndex: number) => {
-    if (answers[currentIndex] !== null) return;
+    if (currentQuestionIdx === undefined) return;
+    if (answers.has(currentQuestionIdx)) return;
     
-    const newAnswers = [...answers];
-    newAnswers[currentIndex] = answerIndex;
+    const newAnswers = new Map(answers);
+    newAnswers.set(currentQuestionIdx, answerIndex);
     setAnswers(newAnswers);
     setSelectedAnswer(answerIndex);
 
@@ -116,7 +121,7 @@ const Exam: React.FC = () => {
     }
 
     // Check if this was the last question
-    const isLastQuestion = currentIndex === questions.length - 1;
+    const isLastQuestion = currentIndex === questionOrder.length - 1;
     if (isLastQuestion) {
       setTimeout(() => {
         setFinalTime(EXAM_TIME - timeLeft);
@@ -126,25 +131,45 @@ const Exam: React.FC = () => {
     }
 
     // Auto advance to next question after a brief delay (only if autoTransition is enabled)
-    if (autoTransition && currentIndex < questions.length - 1) {
+    if (autoTransition && currentIndex < questionOrder.length - 1) {
       setTimeout(() => {
+        const nextQuestionIdx = questionOrder[currentIndex + 1];
         setCurrentIndex(prev => prev + 1);
-        setSelectedAnswer(newAnswers[currentIndex + 1]);
+        setSelectedAnswer(newAnswers.get(nextQuestionIdx) ?? null);
       }, 800);
     }
   };
 
   const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
+    if (currentQuestionIdx === undefined) return;
+    
+    // If current question is unanswered, move it to the end
+    if (!answers.has(currentQuestionIdx)) {
+      setQuestionOrder(prev => {
+        const newOrder = [...prev];
+        // Remove current question from its position
+        newOrder.splice(currentIndex, 1);
+        // Add it to the end
+        newOrder.push(currentQuestionIdx);
+        return newOrder;
+      });
+      // Stay at same index (which now shows the next question)
+      const nextQuestionIdx = questionOrder[currentIndex + 1];
+      if (nextQuestionIdx !== undefined) {
+        setSelectedAnswer(answers.get(nextQuestionIdx) ?? null);
+      }
+    } else if (currentIndex < questionOrder.length - 1) {
+      const nextQuestionIdx = questionOrder[currentIndex + 1];
       setCurrentIndex(prev => prev + 1);
-      setSelectedAnswer(answers[currentIndex + 1]);
+      setSelectedAnswer(answers.get(nextQuestionIdx) ?? null);
     }
   };
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
+      const prevQuestionIdx = questionOrder[currentIndex - 1];
       setCurrentIndex(prev => prev - 1);
-      setSelectedAnswer(answers[currentIndex - 1]);
+      setSelectedAnswer(answers.get(prevQuestionIdx) ?? null);
     }
   };
 
@@ -153,8 +178,9 @@ const Exam: React.FC = () => {
   };
 
   const getAnswerClass = (index: number) => {
-    const currentAnswer = answers[currentIndex];
-    if (currentAnswer === null) return 'card-answer';
+    if (currentQuestionIdx === undefined) return 'card-answer';
+    const currentAnswer = answers.get(currentQuestionIdx);
+    if (currentAnswer === undefined) return 'card-answer';
     if (index === currentQuestion.correctAnswer) return 'card-answer card-answer-correct';
     if (index === currentAnswer && index !== currentQuestion.correctAnswer) return 'card-answer card-answer-wrong';
     return 'card-answer opacity-50';
@@ -373,15 +399,16 @@ const Exam: React.FC = () => {
             
             {currentQuestion?.answers.map((_, index) => {
               const answerNum = index + 1;
-              const isSelected = answers[currentIndex] === index;
-              const isCorrect = answers[currentIndex] !== null && index === currentQuestion.correctAnswer;
-              const isWrong = answers[currentIndex] === index && index !== currentQuestion.correctAnswer;
+              const currentAnswer = currentQuestionIdx !== undefined ? answers.get(currentQuestionIdx) : undefined;
+              const isSelected = currentAnswer === index;
+              const isCorrect = currentAnswer !== undefined && index === currentQuestion.correctAnswer;
+              const isWrong = currentAnswer === index && index !== currentQuestion.correctAnswer;
               
               return (
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
-                  disabled={answers[currentIndex] !== null}
+                  disabled={currentAnswer !== undefined}
                   className={`nav-pill ${
                     isCorrect ? 'border-primary bg-primary/30 text-primary' : 
                     isWrong ? 'border-destructive bg-destructive/30 text-destructive' :
@@ -395,7 +422,7 @@ const Exam: React.FC = () => {
             
             <button
               onClick={handleNext}
-              disabled={currentIndex === questions.length - 1}
+              disabled={currentIndex === questionOrder.length - 1 && answers.has(currentQuestionIdx ?? -1)}
               className="nav-pill disabled:opacity-30"
             >
               <ChevronRight className="w-5 h-5" />
