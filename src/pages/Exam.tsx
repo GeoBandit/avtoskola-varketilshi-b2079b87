@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Home, Trophy, RotateCcw, CheckCircle, XCircle, Clock, History } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, Trophy, RotateCcw, CheckCircle, XCircle, Clock, History, ToggleLeft, ToggleRight } from 'lucide-react';
 import { getQuestionsForVehicle } from '@/data/questions';
 import { useExamHistory } from '@/hooks/useExamHistory';
 import CachedImage from '@/components/CachedImage';
@@ -46,6 +46,7 @@ const Exam: React.FC = () => {
   const [showFailDialog, setShowFailDialog] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [finalTime, setFinalTime] = useState(0);
+  const [autoTransition, setAutoTransition] = useState(true);
   const hasSavedResult = useRef(false);
   
   const { saveAttempt } = useExamHistory();
@@ -124,8 +125,8 @@ const Exam: React.FC = () => {
       return;
     }
 
-    // Auto advance to next question after a brief delay
-    if (currentIndex < questions.length - 1) {
+    // Auto advance to next question after a brief delay (only if autoTransition is enabled)
+    if (autoTransition && currentIndex < questions.length - 1) {
       setTimeout(() => {
         setCurrentIndex(prev => prev + 1);
         setSelectedAnswer(newAnswers[currentIndex + 1]);
@@ -346,44 +347,60 @@ const Exam: React.FC = () => {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="flex items-center justify-between pt-4 border-t border-muted mt-4">
+        <div className="flex flex-col gap-3 pt-4 border-t border-muted mt-4">
+          {/* Auto Transition Toggle */}
           <button
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            className="nav-pill disabled:opacity-30"
+            onClick={() => setAutoTransition(!autoTransition)}
+            className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            {autoTransition ? (
+              <ToggleRight className="w-6 h-6 text-primary" />
+            ) : (
+              <ToggleLeft className="w-6 h-6" />
+            )}
+            <span>{autoTransition ? 'ავტომატური გადასვლა' : 'ხელით გადასვლა'}</span>
           </button>
-          
-          {currentQuestion?.answers.map((_, index) => {
-            const answerNum = index + 1;
-            const isSelected = answers[currentIndex] === index;
-            const isCorrect = answers[currentIndex] !== null && index === currentQuestion.correctAnswer;
-            const isWrong = answers[currentIndex] === index && index !== currentQuestion.correctAnswer;
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+              className="nav-pill disabled:opacity-30"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
             
-            return (
-              <button
-                key={index}
-                onClick={() => handleAnswerSelect(index)}
-                disabled={answers[currentIndex] !== null}
-                className={`nav-pill ${
-                  isCorrect ? 'border-primary bg-primary/30 text-primary' : 
-                  isWrong ? 'border-destructive bg-destructive/30 text-destructive' :
-                  isSelected ? 'border-primary bg-primary/20' : ''
-                } disabled:cursor-default`}
-              >
-                {answerNum}
-              </button>
-            );
-          })}
-          
-          <button
-            onClick={handleNext}
-            disabled={currentIndex === questions.length - 1}
-            className="nav-pill disabled:opacity-30"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+            {currentQuestion?.answers.map((_, index) => {
+              const answerNum = index + 1;
+              const isSelected = answers[currentIndex] === index;
+              const isCorrect = answers[currentIndex] !== null && index === currentQuestion.correctAnswer;
+              const isWrong = answers[currentIndex] === index && index !== currentQuestion.correctAnswer;
+              
+              return (
+                <button
+                  key={index}
+                  onClick={() => handleAnswerSelect(index)}
+                  disabled={answers[currentIndex] !== null}
+                  className={`nav-pill ${
+                    isCorrect ? 'border-primary bg-primary/30 text-primary' : 
+                    isWrong ? 'border-destructive bg-destructive/30 text-destructive' :
+                    isSelected ? 'border-primary bg-primary/20' : ''
+                  } disabled:cursor-default`}
+                >
+                  {answerNum}
+                </button>
+              );
+            })}
+            
+            <button
+              onClick={handleNext}
+              disabled={currentIndex === questions.length - 1}
+              className="nav-pill disabled:opacity-30"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
 
