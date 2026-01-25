@@ -259,7 +259,7 @@ const Questions: React.FC = () => {
         </div>
 
         {/* Explanation */}
-        {showExplanation && selectedAnswer !== null && currentQuestion.explanation && (
+        {showExplanation && currentQuestion.explanation && (
           <div className="mt-4 p-4 rounded-lg bg-accent/20 border border-accent/30 animate-fade-in">
             <p className="text-sm text-muted-foreground leading-relaxed">
               <span className="font-semibold text-accent-foreground">განმარტება: </span>
@@ -280,7 +280,7 @@ const Questions: React.FC = () => {
           
           <button 
             onClick={() => setShowExplanation(!showExplanation)}
-            disabled={selectedAnswer === null || !currentQuestion.explanation}
+            disabled={!currentQuestion.explanation}
             className={`p-3 rounded-full transition-colors disabled:opacity-30 ${
               showExplanation ? 'bg-accent text-accent-foreground' : 'bg-secondary text-foreground hover:bg-accent hover:text-accent-foreground'
             }`}
