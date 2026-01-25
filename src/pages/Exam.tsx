@@ -306,7 +306,7 @@ const Exam: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Content */}
-      <div className="flex-1 bg-app-navy/90 px-4 py-4 flex flex-col">
+      <div className="flex-1 bg-app-navy/90 px-4 py-4 flex flex-col pb-32">
         {/* Timer Bar */}
         <div className="flex items-center justify-between mb-4">
           <button
@@ -362,9 +362,11 @@ const Exam: React.FC = () => {
             );
           })}
         </div>
+      </div>
 
-        {/* Bottom Navigation */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-muted mt-4">
+      {/* Bottom Navigation - Sticky */}
+      <div className="fixed bottom-0 left-0 right-0 bg-app-navy/95 backdrop-blur-sm border-t border-muted px-4 py-3">
+        <div className="flex flex-col gap-3 max-w-md mx-auto">
           {/* Auto Transition Toggle */}
           <button
             onClick={() => setAutoTransition(!autoTransition)}
