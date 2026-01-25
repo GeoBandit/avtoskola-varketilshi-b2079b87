@@ -401,8 +401,8 @@ const Exam: React.FC = () => {
               const answerNum = index + 1;
               const currentAnswer = currentQuestionIdx !== undefined ? answers.get(currentQuestionIdx) : undefined;
               const isSelected = currentAnswer === index;
-              const isCorrect = currentAnswer !== undefined && index === currentQuestion.correctAnswer;
-              const isWrong = currentAnswer === index && index !== currentQuestion.correctAnswer;
+              const isCorrectAnswer = isSelected && index === currentQuestion.correctAnswer;
+              const isWrongAnswer = isSelected && index !== currentQuestion.correctAnswer;
               
               return (
                 <button
@@ -410,9 +410,9 @@ const Exam: React.FC = () => {
                   onClick={() => handleAnswerSelect(index)}
                   disabled={currentAnswer !== undefined}
                   className={`nav-pill ${
-                    isCorrect ? 'border-primary bg-primary/30 text-primary' : 
-                    isWrong ? 'border-destructive bg-destructive/30 text-destructive' :
-                    isSelected ? 'border-primary bg-primary/20' : ''
+                    isCorrectAnswer ? 'border-primary bg-primary/30 text-primary' : 
+                    isWrongAnswer ? 'border-destructive bg-destructive/30 text-destructive' :
+                    ''
                   } disabled:cursor-default`}
                 >
                   {answerNum}
