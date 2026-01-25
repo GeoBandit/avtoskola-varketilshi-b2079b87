@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/context/LanguageContext";
 import OfflineBanner from "@/components/OfflineBanner";
+import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import SubjectSelect from "./pages/SubjectSelect";
 import Questions from "./pages/Questions";
@@ -22,6 +23,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/subject/:categoryId" element={<SubjectSelect />} />
