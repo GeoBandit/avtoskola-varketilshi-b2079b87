@@ -209,10 +209,6 @@ const Exam: React.FC = () => {
   if (isCompleted) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <header className="bg-black/30 py-2">
-          <div className="h-12" />
-        </header>
-
         <div className="flex-1 bg-app-navy/90 px-4 py-6 flex flex-col items-center justify-center">
           <div className="w-full max-w-md text-center animate-fade-in">
             {/* Trophy/Result Icon */}
@@ -309,11 +305,6 @@ const Exam: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-black/30 py-2">
-        <div className="h-12" />
-      </header>
-
       {/* Content */}
       <div className="flex-1 bg-app-navy/90 px-4 py-4 flex flex-col">
         {/* Timer Bar */}
