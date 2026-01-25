@@ -243,10 +243,13 @@ const Questions: React.FC = () => {
             <button
               key={index}
               onClick={() => handleAnswerSelect(index)}
-              className={getAnswerClass(index)}
+              className={`${getAnswerClass(index)} flex items-start gap-3 text-left`}
               disabled={selectedAnswer !== null}
             >
-              {answer}
+              <span className="flex-shrink-0 w-8 h-8 rounded bg-secondary flex items-center justify-center font-bold">
+                {index + 1}
+              </span>
+              <span className="flex-1">{answer}</span>
             </button>
           ))}
         </div>
