@@ -118,7 +118,7 @@
   }
 
   .card-answer {
-    @apply w-full py-4 px-5 rounded-xl bg-card border border-muted text-foreground text-center transition-all duration-200 hover:border-primary;
+    @apply w-full py-4 px-5 rounded-xl bg-card border border-muted text-foreground text-center transition-all duration-200;
   }
 
   .card-answer-correct {
