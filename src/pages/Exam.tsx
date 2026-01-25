@@ -15,34 +15,41 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const EXAM_TIME = 30 * 60; // 30 minutes in seconds
-const EXAM_QUESTION_COUNT = 30;
-
-// Wrong answer limits by category
-const getMaxWrongAnswers = (category: string): number => {
+// Exam settings by category
+const getExamSettings = (category: string) => {
   switch (category) {
+    case 'c':
+    case 'd':
+      return {
+        time: 40 * 60, // 40 minutes
+        questionCount: 40,
+        maxWrongAnswers: 4,
+      };
     case 'b':
     case 'b1':
     case 'ts':
-      return 3; // B, B1, and TS categories allow max 3 wrong answers
-    case 'c':
-    case 'd':
-      return 4; // C and D categories allow max 4 wrong answers
     default:
-      return 3;
+      return {
+        time: 30 * 60, // 30 minutes
+        questionCount: 30,
+        maxWrongAnswers: 3,
+      };
   }
 };
 
 const Exam: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams();
+  
+  const examSettings = useMemo(() => getExamSettings(categoryId || 'b'), [categoryId]);
+  
   const [currentIndex, setCurrentIndex] = useState(0);
   const [questionOrder, setQuestionOrder] = useState<number[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(EXAM_TIME);
+  const [timeLeft, setTimeLeft] = useState(examSettings.time);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [showFailDialog, setShowFailDialog] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -51,13 +58,13 @@ const Exam: React.FC = () => {
   const hasSavedResult = useRef(false);
   
   const { saveAttempt } = useExamHistory();
-  const maxWrongAnswers = getMaxWrongAnswers(categoryId || 'b');
+  const maxWrongAnswers = examSettings.maxWrongAnswers;
 
   const questions = useMemo(() => {
     const allQuestions = getQuestionsForVehicle(categoryId || 'b');
     const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, EXAM_QUESTION_COUNT);
-  }, [categoryId]);
+    return shuffled.slice(0, examSettings.questionCount);
+  }, [categoryId, examSettings.questionCount]);
 
   useEffect(() => {
     // Initialize question order as 0, 1, 2, ... n-1
@@ -71,7 +78,7 @@ const Exam: React.FC = () => {
       setTimeLeft(prev => {
         if (prev <= 0) {
           clearInterval(timer);
-          setFinalTime(EXAM_TIME);
+          setFinalTime(examSettings.time);
           setIsCompleted(true);
           return 0;
         }
@@ -113,7 +120,7 @@ const Exam: React.FC = () => {
       
       // Check if exceeded max wrong answers for this category
       if (newWrongCount > maxWrongAnswers) {
-        setFinalTime(EXAM_TIME - timeLeft);
+        setFinalTime(examSettings.time - timeLeft);
         setIsCompleted(true);
         setShowFailDialog(true);
         return; // Don't auto-advance if failed
@@ -124,7 +131,7 @@ const Exam: React.FC = () => {
     const isLastQuestion = currentIndex === questionOrder.length - 1;
     if (isLastQuestion) {
       setTimeout(() => {
-        setFinalTime(EXAM_TIME - timeLeft);
+        setFinalTime(examSettings.time - timeLeft);
         setIsCompleted(true);
       }, 800);
       return;
