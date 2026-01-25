@@ -10,6 +10,7 @@ const Questions: React.FC = () => {
   const { categoryId, subjectId } = useParams();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongCount, setWrongCount] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
@@ -58,6 +59,7 @@ const Questions: React.FC = () => {
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswer(null);
+      setShowExplanation(false);
     }
   };
 
@@ -65,12 +67,14 @@ const Questions: React.FC = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
       setSelectedAnswer(null);
+      setShowExplanation(false);
     }
   };
 
   const handleRetry = () => {
     setCurrentIndex(0);
     setSelectedAnswer(null);
+    setShowExplanation(false);
     setCorrectCount(0);
     setWrongCount(0);
     setIsCompleted(false);
@@ -255,7 +259,7 @@ const Questions: React.FC = () => {
         </div>
 
         {/* Explanation */}
-        {selectedAnswer !== null && currentQuestion.explanation && (
+        {showExplanation && selectedAnswer !== null && currentQuestion.explanation && (
           <div className="mt-4 p-4 rounded-lg bg-accent/20 border border-accent/30 animate-fade-in">
             <p className="text-sm text-muted-foreground leading-relaxed">
               <span className="font-semibold text-accent-foreground">განმარტება: </span>
@@ -274,7 +278,13 @@ const Questions: React.FC = () => {
             <ChevronLeft className="w-6 h-6" />
           </button>
           
-          <button className="p-3 rounded-full bg-accent text-accent-foreground">
+          <button 
+            onClick={() => setShowExplanation(!showExplanation)}
+            disabled={selectedAnswer === null || !currentQuestion.explanation}
+            className={`p-3 rounded-full transition-colors disabled:opacity-30 ${
+              showExplanation ? 'bg-accent text-accent-foreground' : 'bg-secondary text-foreground hover:bg-accent hover:text-accent-foreground'
+            }`}
+          >
             <Info className="w-6 h-6" />
           </button>
           
