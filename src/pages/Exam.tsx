@@ -23,7 +23,7 @@ const getExamSettings = (category: string) => {
       return {
         time: 40 * 60, // 40 minutes
         questionCount: 40,
-        maxWrongAnswers: 3, // Fail on 4th wrong answer
+        maxWrongAnswers: 4,
       };
     case 'b':
     case 'b1':
