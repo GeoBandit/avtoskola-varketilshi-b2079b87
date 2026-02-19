@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
-import { History, Download, CheckCircle, Loader2, Trash2 } from 'lucide-react';
+import { History, Download, CheckCircle, Loader2, Trash2, LogIn, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 import VehicleCarousel from '@/components/VehicleCarousel';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +19,18 @@ const Home: React.FC = () => {
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0, category: '' });
   const [cacheStatus, setCacheStatus] = useState({ count: 0, estimatedSize: 0 });
   const [downloadComplete, setDownloadComplete] = useState(false);
+  const [user, setUser] = useState<{ email?: string } | null>(null);
+
+  // Check auth state
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Check cache status on mount and set download complete if cached
   useEffect(() => {
@@ -90,6 +103,22 @@ const Home: React.FC = () => {
             574-747-581
           </a>
           <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-10 w-auto" />
+          {user ? (
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="flex items-center gap-1 text-white/70 hover:text-white text-xs transition-colors"
+              title={user.email}
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-1 text-white/70 hover:text-white text-xs transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+            </button>
+          )}
         </header>
 
         {/* Title */}
