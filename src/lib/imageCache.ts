@@ -1,64 +1,56 @@
 /**
  * Image caching utility for offline support.
- * Works by triggering fetches that the PWA service worker (Workbox) intercepts and caches.
- * The Workbox runtime caching rule for starti.ge images uses CacheFirst with opaque response support.
+ * Stores images directly in the Cache API — does NOT rely on Service Workers.
+ * This is critical for Median.co / WKWebView on iOS where SW is unavailable.
  */
 
-const CACHE_NAME = 'exam-images-v1';
+const CACHE_NAME = 'exam-images-v2';
 
 /**
- * Check if an image is already cached (via service worker or Cache API)
+ * Check if an image is already cached
  */
 export async function isImageCached(url: string): Promise<boolean> {
   try {
-    // Check service worker caches first
-    const cacheNames = await caches.keys();
-    for (const name of cacheNames) {
-      const cache = await caches.open(name);
-      const response = await cache.match(url);
-      if (response) return true;
-    }
-    return false;
+    const cache = await caches.open(CACHE_NAME);
+    const response = await cache.match(url);
+    return !!response;
   } catch {
     return false;
   }
 }
 
 /**
- * Cache a single image by fetching it (triggering the service worker to cache it)
+ * Cache a single image by fetching it and storing directly in Cache API
  */
 export async function cacheImage(url: string): Promise<boolean> {
   try {
-    // First check if already in any cache
     if (await isImageCached(url)) return true;
 
-    // Try to create an <img> element to load the image.
-    // This is more reliable than fetch for cross-origin images
-    // and will trigger the service worker to cache the response.
-    return new Promise<boolean>((resolve) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      const timeout = setTimeout(() => {
-        // Try no-cors fetch as fallback (triggers SW caching for opaque responses)
-        fetch(url, { mode: 'no-cors' })
-          .then(() => resolve(true))
-          .catch(() => resolve(false));
-      }, 10000);
+    // Try cors fetch first, then no-cors as fallback
+    let response: Response | null = null;
 
-      img.onload = () => {
-        clearTimeout(timeout);
-        resolve(true);
-      };
-      img.onerror = () => {
-        clearTimeout(timeout);
-        // Even if img fails, try a no-cors fetch to trigger SW caching
-        fetch(url, { mode: 'no-cors' })
-          .then(() => resolve(true))
-          .catch(() => resolve(false));
-      };
-      img.src = url;
-    });
+    try {
+      response = await fetch(url, { mode: 'cors' });
+    } catch {
+      // cors failed, try no-cors
+    }
+
+    if (!response || !response.ok) {
+      try {
+        response = await fetch(url, { mode: 'no-cors' });
+      } catch {
+        return false;
+      }
+    }
+
+    // Store in cache — opaque responses (status 0) are allowed
+    if (response && (response.ok || response.type === 'opaque')) {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(url, response.clone());
+      return true;
+    }
+
+    return false;
   } catch (error) {
     console.warn('Failed to cache image:', url, error);
     return false;
@@ -66,10 +58,26 @@ export async function cacheImage(url: string): Promise<boolean> {
 }
 
 /**
- * Get image URL - simply returns the original URL.
- * The service worker handles serving from cache when offline.
+ * Get a cached image as a blob URL for direct use in <img> tags.
+ * Returns the blob URL if cached, otherwise the original URL.
  */
-export async function getCachedImage(url: string): Promise<string> {
+export async function getCachedImageUrl(url: string): Promise<string> {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const response = await cache.match(url);
+
+    if (response) {
+      // For opaque responses, we can't read the body — use original URL
+      // and hope the cache intercepts it. For normal responses, create blob URL.
+      if (response.type === 'opaque') {
+        return url; // Will be served from cache by browser
+      }
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    }
+  } catch {
+    // Fall through
+  }
   return url;
 }
 
@@ -83,16 +91,16 @@ export async function cacheImages(
   let cached = 0;
   let failed = 0;
   const total = urls.length;
-  
-  // Process in batches to avoid overwhelming the network
+
+  // Process in batches
   const batchSize = 10;
-  
+
   for (let i = 0; i < urls.length; i += batchSize) {
     const batch = urls.slice(i, i + batchSize);
     const results = await Promise.allSettled(
       batch.map(url => cacheImage(url))
     );
-    
+
     results.forEach(result => {
       if (result.status === 'fulfilled' && result.value) {
         cached++;
@@ -100,10 +108,10 @@ export async function cacheImages(
         failed++;
       }
     });
-    
+
     onProgress?.(cached + failed, total);
   }
-  
+
   return { success: cached, failed };
 }
 
@@ -112,50 +120,40 @@ export async function cacheImages(
  */
 export function getImageUrlsFromQuestions(questions: { image?: string }[]): string[] {
   const urls = new Set<string>();
-  
+
   questions.forEach(q => {
     if (q.image && q.image.startsWith('http')) {
       urls.add(q.image);
     }
   });
-  
+
   return Array.from(urls);
 }
 
 /**
- * Get cache statistics across all caches
+ * Get cache statistics
  */
 export async function getCacheStats(): Promise<{ count: number; estimatedSize: number }> {
   try {
-    let totalCount = 0;
+    const cache = await caches.open(CACHE_NAME);
+    const keys = await cache.keys();
     let estimatedSize = 0;
-    
-    const cacheNamesList = await caches.keys();
-    for (const name of cacheNamesList) {
-      // Only count image-related caches
-      if (name.includes('image') || name.includes('exam')) {
-        const cache = await caches.open(name);
-        const keys = await cache.keys();
-        totalCount += keys.length;
-        
-        for (const request of keys) {
-          const response = await cache.match(request);
-          if (response && response.type !== 'opaque') {
-            try {
-              const blob = await response.clone().blob();
-              estimatedSize += blob.size;
-            } catch {
-              // Ignore
-            }
-          } else if (response?.type === 'opaque') {
-            // Estimate ~50KB per opaque response (we can't read their size)
-            estimatedSize += 50 * 1024;
-          }
+
+    for (const request of keys) {
+      const response = await cache.match(request);
+      if (response && response.type !== 'opaque') {
+        try {
+          const blob = await response.clone().blob();
+          estimatedSize += blob.size;
+        } catch {
+          // Ignore
         }
+      } else if (response?.type === 'opaque') {
+        estimatedSize += 50 * 1024; // ~50KB estimate
       }
     }
-    
-    return { count: totalCount, estimatedSize };
+
+    return { count: keys.length, estimatedSize };
   } catch {
     return { count: 0, estimatedSize: 0 };
   }
@@ -166,12 +164,7 @@ export async function getCacheStats(): Promise<{ count: number; estimatedSize: n
  */
 export async function clearImageCache(): Promise<void> {
   try {
-    const cacheNamesList = await caches.keys();
-    for (const name of cacheNamesList) {
-      if (name.includes('image') || name.includes('exam')) {
-        await caches.delete(name);
-      }
-    }
+    await caches.delete(CACHE_NAME);
   } catch (error) {
     console.warn('Failed to clear image cache:', error);
   }
