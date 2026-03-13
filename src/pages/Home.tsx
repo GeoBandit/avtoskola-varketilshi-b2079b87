@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/context/LanguageContext';
-import { History, Download, CheckCircle, Loader2, Trash2, LogIn, LogOut } from 'lucide-react';
+import { History, Download, CheckCircle, Loader2, Trash2, LogIn, LogOut, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 import VehicleCarousel from '@/components/VehicleCarousel';
