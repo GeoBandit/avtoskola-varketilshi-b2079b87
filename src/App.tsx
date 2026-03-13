@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, HashRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/context/LanguageContext";
 import OfflineBanner from "@/components/OfflineBanner";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -16,6 +16,19 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const shouldUseHashRouter = () => {
+  if (typeof window === "undefined") return false;
+
+  const ua = navigator.userAgent || "";
+  const isMedianWebView = /median/i.test(ua);
+  const lacksServiceWorker = !("serviceWorker" in navigator);
+  const isLikelyWebView = /\bwv\b/i.test(ua) || (/iphone|ipad|ipod/i.test(ua) && !/safari/i.test(ua));
+
+  return isMedianWebView || (lacksServiceWorker && isLikelyWebView);
+};
+
+const Router = shouldUseHashRouter() ? HashRouter : BrowserRouter;
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
@@ -23,7 +36,7 @@ const App = () => (
         <OfflineBanner />
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <Router>
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
@@ -35,10 +48,11 @@ const App = () => (
             <Route path="/history" element={<ExamHistory />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
+        </Router>
       </TooltipProvider>
     </LanguageProvider>
   </QueryClientProvider>
 );
 
 export default App;
+
