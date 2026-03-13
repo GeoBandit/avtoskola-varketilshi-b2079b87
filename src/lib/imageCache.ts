@@ -1,106 +1,75 @@
 /**
- * Image caching utility for offline support in both PWA and Capacitor native apps.
- * Uses Cache API directly which works across both web and Capacitor WebView.
+ * Image caching utility for offline support.
+ * Works by triggering fetches that the PWA service worker (Workbox) intercepts and caches.
+ * The Workbox runtime caching rule for starti.ge images uses CacheFirst with opaque response support.
  */
 
 const CACHE_NAME = 'exam-images-v1';
 
 /**
- * Check if an image is already cached
+ * Check if an image is already cached (via service worker or Cache API)
  */
 export async function isImageCached(url: string): Promise<boolean> {
   try {
-    const cache = await caches.open(CACHE_NAME);
-    const response = await cache.match(url);
-    return !!response;
+    // Check service worker caches first
+    const cacheNames = await caches.keys();
+    for (const name of cacheNames) {
+      const cache = await caches.open(name);
+      const response = await cache.match(url);
+      if (response) return true;
+    }
+    return false;
   } catch {
     return false;
   }
 }
 
 /**
- * Cache a single image
+ * Cache a single image by fetching it (triggering the service worker to cache it)
  */
 export async function cacheImage(url: string): Promise<boolean> {
-  const prefetchOnly = async () => {
-    // Helps Workbox/service-worker runtime caching even when CORS blocks Cache API blob usage.
-    try {
-      await fetch(url, { mode: 'no-cors' });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   try {
-    // If Cache API isn't available, fall back to a simple prefetch.
-    if (typeof caches === 'undefined') {
-      return await prefetchOnly();
-    }
+    // First check if already in any cache
+    if (await isImageCached(url)) return true;
 
-    const cache = await caches.open(CACHE_NAME);
-    
-    // Check if already cached
-    const existing = await cache.match(url);
-    if (existing) return true;
-    
-    // Fetch and cache (only works when the remote host allows CORS)
-    try {
-      const response = await fetch(url, { mode: 'cors' });
-      if (response.ok) {
-        await cache.put(url, response.clone());
-        return true;
-      }
-    } catch {
-      // CORS/network failure: we'll try a no-cors prefetch below.
-    }
+    // Try to create an <img> element to load the image.
+    // This is more reliable than fetch for cross-origin images
+    // and will trigger the service worker to cache the response.
+    return new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      const timeout = setTimeout(() => {
+        // Try no-cors fetch as fallback (triggers SW caching for opaque responses)
+        fetch(url, { mode: 'no-cors' })
+          .then(() => resolve(true))
+          .catch(() => resolve(false));
+      }, 10000);
 
-    // If CORS prevented caching, still try to prefetch so the PWA service worker can cache it.
-    return await prefetchOnly();
+      img.onload = () => {
+        clearTimeout(timeout);
+        resolve(true);
+      };
+      img.onerror = () => {
+        clearTimeout(timeout);
+        // Even if img fails, try a no-cors fetch to trigger SW caching
+        fetch(url, { mode: 'no-cors' })
+          .then(() => resolve(true))
+          .catch(() => resolve(false));
+      };
+      img.src = url;
+    });
   } catch (error) {
     console.warn('Failed to cache image:', url, error);
-    return await prefetchOnly();
+    return false;
   }
 }
 
 /**
- * Get image from cache, falling back to network
+ * Get image URL - simply returns the original URL.
+ * The service worker handles serving from cache when offline.
  */
 export async function getCachedImage(url: string): Promise<string> {
-  try {
-    if (typeof caches === 'undefined') return url;
-
-    const cache = await caches.open(CACHE_NAME);
-    const cachedResponse = await cache.match(url);
-    
-    if (cachedResponse) {
-      // If the response is opaque (no-cors), we can't safely turn it into a blob.
-      // In that case, return the original URL and let the service worker/browser handle it.
-      if (cachedResponse.type === 'opaque') {
-        return url;
-      }
-
-      const blob = await cachedResponse.blob();
-      return URL.createObjectURL(blob);
-    }
-    
-    // Not in cache, try network and cache it
-    try {
-      const response = await fetch(url, { mode: 'cors' });
-      if (response.ok) {
-        await cache.put(url, response.clone());
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
-      }
-    } catch {
-      // If CORS fails, fall through to returning the original URL.
-      // (Offline PWA can still work via Workbox runtime caching.)
-    }
-  } catch (error) {
-    console.warn('Failed to get cached image:', url, error);
-  }
-  
-  // Return original URL as fallback
   return url;
 }
 
@@ -116,7 +85,7 @@ export async function cacheImages(
   const total = urls.length;
   
   // Process in batches to avoid overwhelming the network
-  const batchSize = 5;
+  const batchSize = 10;
   
   for (let i = 0; i < urls.length; i += batchSize) {
     const batch = urls.slice(i, i + batchSize);
@@ -154,27 +123,39 @@ export function getImageUrlsFromQuestions(questions: { image?: string }[]): stri
 }
 
 /**
- * Get cache statistics
+ * Get cache statistics across all caches
  */
 export async function getCacheStats(): Promise<{ count: number; estimatedSize: number }> {
   try {
-    const cache = await caches.open(CACHE_NAME);
-    const keys = await cache.keys();
-    
+    let totalCount = 0;
     let estimatedSize = 0;
-    for (const request of keys) {
-      const response = await cache.match(request);
-      if (response) {
-        try {
-          const blob = await response.clone().blob();
-          estimatedSize += blob.size;
-        } catch {
-          // Ignore responses we can't size (e.g., opaque)
+    
+    const cacheNamesList = await caches.keys();
+    for (const name of cacheNamesList) {
+      // Only count image-related caches
+      if (name.includes('image') || name.includes('exam')) {
+        const cache = await caches.open(name);
+        const keys = await cache.keys();
+        totalCount += keys.length;
+        
+        for (const request of keys) {
+          const response = await cache.match(request);
+          if (response && response.type !== 'opaque') {
+            try {
+              const blob = await response.clone().blob();
+              estimatedSize += blob.size;
+            } catch {
+              // Ignore
+            }
+          } else if (response?.type === 'opaque') {
+            // Estimate ~50KB per opaque response (we can't read their size)
+            estimatedSize += 50 * 1024;
+          }
         }
       }
     }
     
-    return { count: keys.length, estimatedSize };
+    return { count: totalCount, estimatedSize };
   } catch {
     return { count: 0, estimatedSize: 0 };
   }
@@ -185,7 +166,12 @@ export async function getCacheStats(): Promise<{ count: number; estimatedSize: n
  */
 export async function clearImageCache(): Promise<void> {
   try {
-    await caches.delete(CACHE_NAME);
+    const cacheNamesList = await caches.keys();
+    for (const name of cacheNamesList) {
+      if (name.includes('image') || name.includes('exam')) {
+        await caches.delete(name);
+      }
+    }
   } catch (error) {
     console.warn('Failed to clear image cache:', error);
   }
