@@ -13,6 +13,7 @@ import Exam from "./pages/Exam";
 import ExamHistory from "./pages/ExamHistory";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/questions/:categoryId/:subjectId" element={<Questions />} />
             <Route path="/exam/:categoryId" element={<Exam />} />
             <Route path="/history" element={<ExamHistory />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
