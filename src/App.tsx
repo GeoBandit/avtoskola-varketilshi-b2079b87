@@ -13,6 +13,7 @@ import Exam from "./pages/Exam";
 import ExamHistory from "./pages/ExamHistory";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
