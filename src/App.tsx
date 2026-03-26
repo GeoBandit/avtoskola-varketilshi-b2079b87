@@ -57,4 +57,4 @@ const App = () => (
 );
 
 export default App;
-
+import NotFound from "./pages/NotFound";
