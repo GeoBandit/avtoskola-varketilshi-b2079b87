@@ -11,7 +11,6 @@ import SubjectSelect from "./pages/SubjectSelect";
 import Questions from "./pages/Questions";
 import Exam from "./pages/Exam";
 import ExamHistory from "./pages/ExamHistory";
-
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
@@ -41,7 +40,6 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
-            
             <Route path="/subject/:categoryId" element={<SubjectSelect />} />
             <Route path="/all/:categoryId" element={<Questions />} />
             <Route path="/questions/:categoryId/:subjectId" element={<Questions />} />
@@ -57,4 +55,3 @@ const App = () => (
 );
 
 export default App;
-
