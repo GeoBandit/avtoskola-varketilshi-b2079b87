@@ -18,18 +18,6 @@ const Home: React.FC = () => {
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0, category: '' });
   const [cacheStatus, setCacheStatus] = useState({ count: 0, estimatedSize: 0 });
   const [downloadComplete, setDownloadComplete] = useState(false);
-  const [user, setUser] = useState<{ email?: string } | null>(null);
-
-  // Check auth state
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Check cache status on mount and set download complete if cached
   useEffect(() => {
