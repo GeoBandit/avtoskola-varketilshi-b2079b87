@@ -11,7 +11,7 @@ import SubjectSelect from "./pages/SubjectSelect";
 import Questions from "./pages/Questions";
 import Exam from "./pages/Exam";
 import ExamHistory from "./pages/ExamHistory";
-import Auth from "./pages/Auth";
+
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
@@ -41,7 +41,7 @@ const App = () => (
           <ScrollToTop />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+            
             <Route path="/subject/:categoryId" element={<SubjectSelect />} />
             <Route path="/all/:categoryId" element={<Questions />} />
             <Route path="/questions/:categoryId/:subjectId" element={<Questions />} />
