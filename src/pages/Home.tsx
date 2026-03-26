@@ -91,22 +91,7 @@ const Home: React.FC = () => {
             574-747-581
           </a>
           <img src={avtoskolaLogo} alt="ავტოსკოლა ვარკეთილში" className="h-10 w-auto" />
-          {user ? (
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="flex items-center gap-1 text-white/70 hover:text-white text-xs transition-colors"
-              title={user.email}
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/auth')}
-              className="flex items-center gap-1 text-white/70 hover:text-white text-xs transition-colors"
-            >
-              <LogIn className="w-4 h-4" />
-            </button>
-          )}
+          <div className="w-10" />
         </header>
 
         {/* Title */}
